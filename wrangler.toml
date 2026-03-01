@@ -1,0 +1,17 @@
+name = "line-health-bot"
+main = "src/index.js"
+compatibility_date = "2024-09-23"
+
+# UTC 00:00 = TST 08:00 (morning meds)
+# UTC 12:00 = TST 20:00 (evening meds)
+# UTC 14:00 = TST 22:00 (bedtime)
+[triggers]
+crons = ["0 0 * * *", "0 12 * * *", "0 14 * * *"]
+
+[vars]
+USER_IDS = "Uf5b3cdebe7794ba0254f40fcc06b2ddd,Ue4f64b432e3d655c2bc6426ebba82b25"
+
+# Secrets (set via CLI, not here):
+#   npx wrangler secret put LINE_CHANNEL_SECRET
+#   npx wrangler secret put LINE_CHANNEL_ACCESS_TOKEN
+#   npx wrangler secret put GROQ_API_KEY
