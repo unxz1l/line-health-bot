@@ -17,6 +17,8 @@ export async function handleWebhook(request, env) {
     if (!valid) {
       log('WARN', 'invalid_signature', {
         ip: request.headers.get('cf-connecting-ip'),
+        signaturePrefix: signature.substring(0, 10) + '...',
+        bodyLength: body.length,
       });
       return new Response('Unauthorized', { status: 401 });
     }
