@@ -66,7 +66,10 @@ src/
 
 3. **Configure users**
 
-   Edit `USER_IDS` in `wrangler.toml` — comma-separated LINE User IDs. See [Adding a Family Member](#adding-a-family-member) below.
+   ```sh
+   npx wrangler secret put USER_IDS
+   ```
+   Value: comma-separated LINE User IDs. See [Adding a Family Member](#adding-a-family-member) below.
 
 4. **Deploy**
 
@@ -87,7 +90,7 @@ src/
 | `LINE_CHANNEL_SECRET` | Secret | HMAC key for webhook signature verification |
 | `LINE_CHANNEL_ACCESS_TOKEN` | Secret | LINE Messaging API bearer token |
 | `GROQ_API_KEY` | Secret | Groq API key for LLM calls |
-| `USER_IDS` | Var | Comma-separated LINE User IDs for push reminders |
+| `USER_IDS` | Secret | Comma-separated LINE User IDs for push reminders |
 
 ## Free Tier Budget
 
@@ -108,7 +111,7 @@ Cron reminders use push messages. Chat replies use reply messages (free, unlimit
 1. Have them add the bot as a LINE friend
 2. They send the message: `我的ID`
 3. The bot replies with their LINE User ID
-4. Add that ID to `USER_IDS` in `wrangler.toml`, comma-separated
+4. Update the `USER_IDS` secret: `npx wrangler secret put USER_IDS` (comma-separated)
 5. Redeploy: `npm run deploy`
 
 ## Local Development
