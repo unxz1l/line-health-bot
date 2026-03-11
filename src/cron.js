@@ -3,9 +3,8 @@ import { pushMessage } from './line.js';
 import { generateReminder } from './llm.js';
 
 const CRON_MAP = {
-  '0 0 * * *': 'morning_medicine',   // UTC 00:00 = TST 08:00
-  '0 12 * * *': 'evening_medicine',  // UTC 12:00 = TST 20:00
-  '0 14 * * *': 'sleep',             // UTC 14:00 = TST 22:00
+  '0 0 * * *': 'morning_exercise',   // UTC 00:00 = TST 08:00
+  '0 13 * * *': 'evening_medicine',  // UTC 13:00 = TST 21:00
 };
 
 function parseUserIds(env) {
@@ -13,6 +12,14 @@ function parseUserIds(env) {
     .split(',')
     .map((id) => id.trim())
     .filter(Boolean);
+}
+
+function parseNicknames(env) {
+  try {
+    return JSON.parse(env.USER_NICKNAMES || '{}');
+  } catch {
+    return {};
+  }
 }
 
 export async function handleCron(event, env) {
@@ -35,12 +42,15 @@ export async function handleCron(event, env) {
   });
 
   // Generate once, send to all users (saves API calls).
-  // Per-user customization is a future enhancement.
+  // Per-user nicknames are prefixed at send time.
   const message = await generateReminder(reminderType, env);
+  const nicknames = parseNicknames(env);
 
   const results = await Promise.allSettled(
     userIds.map(async (userId) => {
-      const ok = await pushMessage(userId, message, env);
+      const nickname = nicknames[userId];
+      const personalMessage = nickname ? `${nickname}，${message}` : message;
+      const ok = await pushMessage(userId, personalMessage, env);
       return { userId, ok };
     }),
   );

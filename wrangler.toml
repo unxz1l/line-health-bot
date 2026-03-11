@@ -2,15 +2,14 @@ name = "line-health-bot"
 main = "src/index.js"
 compatibility_date = "2024-09-23"
 
-# UTC 00:00 = TST 08:00 (morning meds)
-# UTC 12:00 = TST 20:00 (evening meds)
-# UTC 14:00 = TST 22:00 (bedtime)
+# UTC 00:00 = TST 08:00 (morning exercise)
+# UTC 13:00 = TST 21:00 (evening meds)
 [triggers]
-crons = ["0 0 * * *", "0 12 * * *", "0 14 * * *"]
+crons = ["0 0 * * *", "0 13 * * *"]
 
-# USER_IDS: set via CLI, not here
-#   npx wrangler secret put USER_IDS
-# Format: comma-separated LINE user IDs, e.g. "Uxxxx,Uyyyy"
+[vars]
+USER_IDS = "U0d6130dc9088f56e291111a778e42ae3,U83586b0d9057eca5f4f184ac83d5f9bc"
+USER_NICKNAMES = '{"U0d6130dc9088f56e291111a778e42ae3":"媽媽","U83586b0d9057eca5f4f184ac83d5f9bc":"爸爸"}'
 
 # Secrets (set via CLI, not here):
 #   npx wrangler secret put LINE_CHANNEL_SECRET
