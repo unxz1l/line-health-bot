@@ -94,12 +94,13 @@ describe('handleCron — nickname personalization', () => {
     });
   });
 
-  it('sends without nickname prefix when USER_NICKNAMES is invalid JSON', async () => {
+  it('sends without nickname prefix and logs warning when USER_NICKNAMES is invalid JSON', async () => {
     generateReminder.mockResolvedValue('測試訊息');
     const envBadJson = { ...baseEnv, USER_NICKNAMES: 'not-json' };
 
     await handleCron({ cron: '0 0 * * *' }, envBadJson);
 
+    expect(log).toHaveBeenCalledWith('WARN', 'invalid_user_nicknames', expect.objectContaining({ error: expect.any(String) }));
     pushMessage.mock.calls.forEach((call) => {
       expect(call[1]).toBe('測試訊息');
     });
@@ -141,6 +142,17 @@ describe('handleCron — edge cases', () => {
       total: 2,
       succeeded: 1,
       failed: 1,
+    });
+  });
+
+  it('catches unexpected errors and logs them', async () => {
+    generateReminder.mockRejectedValue(new Error('unexpected boom'));
+
+    await handleCron({ cron: '0 0 * * *' }, baseEnv);
+
+    expect(log).toHaveBeenCalledWith('ERROR', 'cron_handler', {
+      cron: '0 0 * * *',
+      error: 'unexpected boom',
     });
   });
 });

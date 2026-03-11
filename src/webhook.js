@@ -27,12 +27,13 @@ export async function handleWebhook(request, env) {
 
     // LINE sends an empty events array when verifying the webhook URL.
     if (events.length === 0) {
-      log('INFO', 'webhook_verify');
+      log('INFO', 'webhook_verified');
       return new Response('OK', { status: 200 });
     }
 
     for (const event of events) {
-      if (event.type !== 'message' || event.message.type !== 'text') continue;
+      if (event.type !== 'message' || event.message?.type !== 'text') continue;
+      if (!event.source?.userId) continue;
 
       const { text: userMessage } = event.message;
       const { replyToken } = event;

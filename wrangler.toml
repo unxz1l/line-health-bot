@@ -7,11 +7,9 @@ compatibility_date = "2024-09-23"
 [triggers]
 crons = ["0 0 * * *", "0 13 * * *"]
 
-[vars]
-USER_IDS = "U0d6130dc9088f56e291111a778e42ae3,U83586b0d9057eca5f4f184ac83d5f9bc"
-USER_NICKNAMES = '{"U0d6130dc9088f56e291111a778e42ae3":"媽媽","U83586b0d9057eca5f4f184ac83d5f9bc":"爸爸"}'
-
-# Secrets (set via CLI, not here):
+# All secrets set via CLI (never commit real values):
 #   npx wrangler secret put LINE_CHANNEL_SECRET
 #   npx wrangler secret put LINE_CHANNEL_ACCESS_TOKEN
 #   npx wrangler secret put GROQ_API_KEY
+#   npx wrangler secret put USER_IDS              # comma-separated, e.g. "Uxxxx,Uyyyy"
+#   npx wrangler secret put USER_NICKNAMES         # JSON, e.g. '{"Uxxxx":"媽媽","Uyyyy":"爸爸"}'

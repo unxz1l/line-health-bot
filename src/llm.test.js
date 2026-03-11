@@ -63,6 +63,22 @@ describe('generateReminder', () => {
   });
 });
 
+describe('generateReminder — model config', () => {
+  it('uses default model when GROQ_MODEL is not set', async () => {
+    mockFetch('test');
+    await generateReminder('morning_exercise', env);
+    const body = JSON.parse(global.fetch.mock.calls[0][1].body);
+    expect(body.model).toBe('llama-3.3-70b-versatile');
+  });
+
+  it('uses GROQ_MODEL from env when set', async () => {
+    mockFetch('test');
+    await generateReminder('morning_exercise', { ...env, GROQ_MODEL: 'llama-3.1-8b-instant' });
+    const body = JSON.parse(global.fetch.mock.calls[0][1].body);
+    expect(body.model).toBe('llama-3.1-8b-instant');
+  });
+});
+
 describe('generateReply — system prompt content', () => {
   it('system prompt identifies as 機器人 and mentions 鈺臻', async () => {
     mockFetch('你好～');

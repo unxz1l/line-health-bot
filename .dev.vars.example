@@ -1,0 +1,12 @@
+# Copy this file to .dev.vars and fill in your values.
+# .dev.vars is gitignored and will NOT be committed.
+
+# --- Required ---
+LINE_CHANNEL_SECRET=your-line-channel-secret
+LINE_CHANNEL_ACCESS_TOKEN=your-line-channel-access-token
+GROQ_API_KEY=your-groq-api-key
+USER_IDS=Uxxxx,Uyyyy
+
+# --- Optional ---
+USER_NICKNAMES={"Uxxxx":"媽媽","Uyyyy":"爸爸"}
+GROQ_MODEL=llama-3.3-70b-versatile

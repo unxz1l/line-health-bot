@@ -2,7 +2,10 @@ import { log } from './logger.js';
 import { getRandomFallback } from './fallback.js';
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const MODEL = 'llama-3.3-70b-versatile';
+const DEFAULT_MODEL = 'llama-3.3-70b-versatile';
+
+const REPLY_OPTIONS = { maxTokens: 200, temperature: 0.7 };
+const REMINDER_OPTIONS = { maxTokens: 100, temperature: 0.9 };
 
 const SYSTEM_PROMPT = `你是「阿臻」，一個 LINE 上的健康關懷機器人小助手。你是由女兒「鈺臻」設定的自動化機器人助手，專門每天提醒、關心爸爸媽媽。
 
@@ -61,15 +64,16 @@ const REMINDER_PROMPTS = {
 直接輸出訊息內容，不要加任何前綴說明。`,
 };
 
-async function callGroq(messages, { maxTokens, temperature }, apiKey) {
+async function callGroq(messages, { maxTokens, temperature }, env) {
+  const model = env.GROQ_MODEL || DEFAULT_MODEL;
   const res = await fetch(GROQ_URL, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${env.GROQ_API_KEY}`,
     },
     body: JSON.stringify({
-      model: MODEL,
+      model,
       messages,
       max_tokens: maxTokens,
       temperature,
@@ -85,51 +89,45 @@ async function callGroq(messages, { maxTokens, temperature }, apiKey) {
   return data.choices?.[0]?.message?.content?.trim() || null;
 }
 
-export async function generateReply(userMessage, env) {
+async function callWithFallback(action, fallbackType, messages, options, env, logFields = {}) {
   try {
-    const reply = await callGroq(
-      [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: userMessage },
-      ],
-      { maxTokens: 200, temperature: 0.7 },
-      env.GROQ_API_KEY,
-    );
+    const result = await callGroq(messages, options, env);
 
-    if (!reply) {
-      log('WARN', 'groq_reply_empty');
-      return getRandomFallback('reply');
+    if (!result) {
+      log('WARN', `groq_${action}_empty`, logFields);
+      return getRandomFallback(fallbackType);
     }
 
-    log('INFO', 'groq_reply', {
-      preview: userMessage.substring(0, 50),
-      replyLength: reply.length,
-    });
-    return reply;
+    log('INFO', `groq_${action}`, { ...logFields, messageLength: result.length });
+    return result;
   } catch (err) {
-    log('ERROR', 'groq_reply', { error: err.message });
-    return getRandomFallback('reply');
+    log('ERROR', `groq_${action}`, { ...logFields, error: err.message });
+    return getRandomFallback(fallbackType);
   }
+}
+
+export async function generateReply(userMessage, env) {
+  return callWithFallback(
+    'reply',
+    'reply',
+    [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: userMessage },
+    ],
+    REPLY_OPTIONS,
+    env,
+    { preview: userMessage.substring(0, 50) },
+  );
 }
 
 // Higher temperature (0.9) so daily reminders feel varied, not copy-pasted.
 export async function generateReminder(reminderType, env) {
-  try {
-    const message = await callGroq(
-      [{ role: 'user', content: REMINDER_PROMPTS[reminderType] }],
-      { maxTokens: 100, temperature: 0.9 },
-      env.GROQ_API_KEY,
-    );
-
-    if (!message) {
-      log('WARN', 'groq_reminder_empty', { reminderType });
-      return getRandomFallback(reminderType);
-    }
-
-    log('INFO', 'groq_reminder', { reminderType, messageLength: message.length });
-    return message;
-  } catch (err) {
-    log('ERROR', 'groq_reminder', { reminderType, error: err.message });
-    return getRandomFallback(reminderType);
-  }
+  return callWithFallback(
+    'reminder',
+    reminderType,
+    [{ role: 'user', content: REMINDER_PROMPTS[reminderType] }],
+    REMINDER_OPTIONS,
+    env,
+    { reminderType },
+  );
 }

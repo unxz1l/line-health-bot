@@ -74,23 +74,19 @@ https://line-health-bot.<your-subdomain>.workers.dev
 
 ### Step 3：設定 secrets
 
+所有敏感資料都透過 `wrangler secret` 管理，不會進 git：
+
 ```sh
 npx wrangler secret put LINE_CHANNEL_SECRET
 npx wrangler secret put LINE_CHANNEL_ACCESS_TOKEN
 npx wrangler secret put GROQ_API_KEY
+npx wrangler secret put USER_IDS              # 逗號分隔，例如 "Uxxxx,Uyyyy"
+npx wrangler secret put USER_NICKNAMES         # JSON，例如 '{"Uxxxx":"媽媽","Uyyyy":"爸爸"}'
 ```
 
-### Step 4：填入爸媽的資料
+> 本地開發時，複製 `.dev.vars.example` 為 `.dev.vars` 並填入真實值（`.dev.vars` 已被 `.gitignore` 排除）。
 
-編輯 `wrangler.toml`：
-
-```toml
-[vars]
-USER_IDS = "媽媽的ID,爸爸的ID"
-USER_NICKNAMES = '{"媽媽的ID":"媽媽","爸爸的ID":"爸爸"}'
-```
-
-### Step 5：部署
+### Step 4：部署
 
 ```sh
 npm run deploy
@@ -112,6 +108,16 @@ crons = ["0 0 * * *", "0 13 * * *"]
 
 > TST = UTC + 8。想改成早上 7 點就用 `0 23 * * *`（前一天 UTC 23:00）。
 
+### 換 LLM 模型
+
+預設使用 Groq 的 `llama-3.3-70b-versatile`。想換模型只要設定環境變數：
+
+```sh
+npx wrangler secret put GROQ_MODEL    # 例如 "llama-3.1-8b-instant"
+```
+
+不設定就用預設值，不需要改任何程式碼。
+
 ### 改提醒內容
 
 編輯 `src/llm.js` 裡的 `REMINDER_PROMPTS`，用自然語言描述你要的提醒內容。例如你爸媽早上要吃藥，就把 `morning_exercise` 的 prompt 改成吃藥提醒。
@@ -129,9 +135,9 @@ crons = ["0 0 * * *", "0 13 * * *"]
 
 ### 改暱稱 / 加人
 
-```toml
-USER_IDS = "ID1,ID2,ID3"
-USER_NICKNAMES = '{"ID1":"媽媽","ID2":"爸爸","ID3":"阿嬤"}'
+```sh
+npx wrangler secret put USER_IDS              # "ID1,ID2,ID3"
+npx wrangler secret put USER_NICKNAMES         # '{"ID1":"媽媽","ID2":"爸爸","ID3":"阿嬤"}'
 ```
 
 沒設暱稱的用戶會收到原始訊息（不加前綴）。
@@ -173,6 +179,7 @@ npm test
 ## 本地開發
 
 ```sh
+cp .dev.vars.example .dev.vars   # 填入你的真實值
 npm run dev
 ```
 
